@@ -39,12 +39,27 @@ struct CountriesList: View {
     @EnvironmentObject var appState: Deduplicated<AppState, StateSnapshot>
     @Environment(\.interactors) var interactors: InteractorsContainer
     private let cancelBag = CancelBag()
+    @State private var showDetailView: Bool = false
+    /// hardcoded just for showing the network request bug when loading the country detail as a modal
+    let country = Country(name: "Bahrain", population: 1, flag: URL(string: "https://restcountries.eu/data/bhr.svg"), alpha3Code: "BHR")
     
     var body: some View {
         GeometryReader { geometry in
             NavigationView {
                 self.content
                     .navigationBarTitle("Countries")
+                    .navigationBarItems(trailing:
+                        HStack {
+                            Button(action: {
+                                self.showDetailView.toggle()
+                            }, label: {Image(systemName: "plus")})
+                                .sheet(isPresented: self.$showDetailView) {
+                                    CountryDetails(country: self.country)
+                                        .environmentObject(self.appState)
+                                        .environment(\.interactors, self.interactors)
+                            }
+                        }
+                )
             }.padding(.leading, self.leadingPadding(geometry))
         }
     }
